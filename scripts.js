@@ -137,7 +137,7 @@ function getLayerBounds(layerName) {
 
 // **************************** MODULE TRUYỀN NHẬN DỮ LIỆU TỪ FRONTEND - BACKEND - DATABASE ************************** //
 let url =
-  "https://script.google.com/macros/s/AKfycbwJZefxpfYHAKQyYy2alAQb5e9O87J0ojM40vgEY00GIaXG00E0gPduXEZPrdsmozExHg/exec";
+  "https://script.google.com/macros/s/AKfycbyKl--w9tZtT7zWcAFjX3AEoT9vD0N1-HFs2uZCoUVmleXOIC3hwIkfMf27QzqQHqrv6w/exec";
 
 // Hàm fetch dữ liệu từ Database về
 function fetchDatatoDB(markerData) {
