@@ -137,7 +137,7 @@ function getLayerBounds(layerName) {
 
 // **************************** MODULE TRUYỀN NHẬN DỮ LIỆU TỪ FRONTEND - BACKEND - DATABASE ************************** //
 let url =
-  "https://script.google.com/macros/s/AKfycbyKl--w9tZtT7zWcAFjX3AEoT9vD0N1-HFs2uZCoUVmleXOIC3hwIkfMf27QzqQHqrv6w/exec";
+  "https://script.google.com/macros/s/AKfycbxrLxLhelOHd8Row0SzjZnm0sI-dh4dSEHKrQOr02fu3hX1b2052wxxtz4v7S05DI8wcg/exec";
 
 // Hàm fetch dữ liệu từ Database về
 function fetchDatatoDB(markerData) {
@@ -179,7 +179,7 @@ function fetchDatafromDB() {
     .then((response) => response.json())
     .then((data) => {
       data.forEach((item) => {
-        const time = item.timestamp;
+        const databaseTimestr = item.timestamp;
         markerId = item.id;
         markerlatitude = parseFloat(item.latitude);
         markerlongitude = parseFloat(item.longitude);
@@ -190,6 +190,24 @@ function fetchDatafromDB() {
         markerimageUrl = item.imageUrl;
 
         const markerColor = getMarkerColor(markerlevel);
+
+        // Chỉnh thới gian của marker
+        const databaseTime = new Date(databaseTimestr);
+        const markerTime = `${databaseTime
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${databaseTime
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}:${databaseTime
+          .getSeconds()
+          .toString()
+          .padStart(2, "0")} ${databaseTime
+          .getDate()
+          .toString()
+          .padStart(2, "0")}-${(databaseTime.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}-${databaseTime.getFullYear()}`;
 
         // Create a marker for each data point
         if (
@@ -212,7 +230,7 @@ function fetchDatafromDB() {
             className: "custom-popup",
           }).setHTML(
             `<h7>Báo cáo</h7>
-            <p>Thời gian: ${time}</p>
+            <p>Thời gian: ${markerTime}</p>
             <p>Vị trí: ${markerposition}</p>
             <p>Mô tả: ${markerstatus} - ${markerdesc}</p>
             <p>Mức độ: ${markerlevel}</p>
