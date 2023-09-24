@@ -139,7 +139,7 @@ function getLayerBounds(layerName) {
 let url =
   "https://script.google.com/macros/s/AKfycbxrLxLhelOHd8Row0SzjZnm0sI-dh4dSEHKrQOr02fu3hX1b2052wxxtz4v7S05DI8wcg/exec";
 
-// Hàm fetch dữ liệu từ Database về
+// Hàm fetch dữ liệu tới Database
 function fetchDatatoDB(markerData) {
   fetch(url, {
     method: "POST",
@@ -173,7 +173,7 @@ var markerposition = null;
 var markerdesc = null;
 var markerimageUrl = null;
 
-// Hàm fetch truyền dữ liệu các marker đến Database
+// Hàm fetch lấy dữ liệu các marker từ Database về
 function fetchDatafromDB() {
   fetch(url)
     .then((response) => response.json())
@@ -599,6 +599,17 @@ $(document).ready(function () {
         });
       notificationCount.text("0");
     }
+
+    // Close the popup when the close button is clicked
+    $("#closePopup").click(function () {
+      $("#popup-noti, #popup-noti-Overlay").css(
+        "transform",
+        "translateY(100%)"
+      );
+      setTimeout(function () {
+        $("#popup-noti-Overlay").css("display", "none");
+      }, 300);
+    });
 
     notifications.forEach((notification) => {
       notification.mark = true; // Mark all notifications as mark when the button is clicked
