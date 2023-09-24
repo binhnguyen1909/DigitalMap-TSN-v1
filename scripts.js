@@ -136,17 +136,18 @@ function getLayerBounds(layerName) {
 // *********************************************************************************************************************** */
 
 // **************************** MODULE TRUYỀN NHẬN DỮ LIỆU TỪ FRONTEND - BACKEND - DATABASE ************************** //
-let url =
+let main_url =
   "https://script.google.com/macros/s/AKfycbxrLxLhelOHd8Row0SzjZnm0sI-dh4dSEHKrQOr02fu3hX1b2052wxxtz4v7S05DI8wcg/exec";
-
+let noti_url =
+  "https://script.google.com/macros/s/AKfycby3IO_GZuHg_GnZ8T3E4N56woN-XAu5xZR2rxrJvsW2g--qX4Wh5o8UhltBPUX_LBPkSw/exec";
 // Hàm fetch dữ liệu tới Database
-function fetchDatatoDB(markerData) {
-  fetch(url, {
+function fetchDatatoDB(Data) {
+  fetch(main_url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(markerData),
+    body: JSON.stringify(Data),
     mode: "no-cors",
   })
     .then((response) => response.text())
@@ -175,7 +176,7 @@ var markerimageUrl = null;
 
 // Hàm fetch lấy dữ liệu các marker từ Database về
 function fetchDatafromDB() {
-  fetch(url)
+  fetch(main_url)
     .then((response) => response.json())
     .then((data) => {
       data.forEach((item) => {
@@ -192,22 +193,7 @@ function fetchDatafromDB() {
         const markerColor = getMarkerColor(markerlevel);
 
         // Chỉnh thới gian của marker
-        const databaseTime = new Date(databaseTimestr);
-        const markerTime = `${databaseTime
-          .getHours()
-          .toString()
-          .padStart(2, "0")}:${databaseTime
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}:${databaseTime
-          .getSeconds()
-          .toString()
-          .padStart(2, "0")} ${databaseTime
-          .getDate()
-          .toString()
-          .padStart(2, "0")}-${(databaseTime.getMonth() + 1)
-          .toString()
-          .padStart(2, "0")}-${databaseTime.getFullYear()}`;
+        const markerTime = ConvertTimefromDB(databaseTimestr);
 
         // Create a marker for each data point
         if (
@@ -253,7 +239,8 @@ function fetchDatafromDB() {
   return markerId;
 }
 // Update từ Database về mỗi 5 giây
-setInterval(fetchDatafromDB, 5000);
+setInterval(fetchDatafromDB, 15000);
+setInterval(fetchNotificationDatafromDB, 15000);
 // Hàm xử lý màu của các Marker
 function getMarkerColor(level) {
   switch (level) {
@@ -268,6 +255,21 @@ function getMarkerColor(level) {
   }
 }
 
+// Hàm xử lý thời gian
+function ConvertTimefromDB(Timestring) {
+  const Time = new Date(Timestring);
+  return `${Time.getHours().toString().padStart(2, "0")}:${Time.getMinutes()
+    .toString()
+    .padStart(2, "0")}:${Time.getSeconds()
+    .toString()
+    .padStart(2, "0")} ${Time.getDate().toString().padStart(2, "0")}-${(
+    Time.getMonth() + 1
+  )
+    .toString()
+    .padStart(2, "0")}-${Time.getFullYear()}`;
+}
+
+// Hàm xử lý khi nhấn xác nhận đã xử lý
 function onConfirmFixedClick(
   markerId,
   markerlatitude,
@@ -498,13 +500,54 @@ function Description() {
 }
 
 // ************************************** MODULE CODE JQUERRY CỦA NOTIFICATION SLIDEUP ************************************************** //
+// Hàm fetch lấy dữ liệu thông báo từ Database về
+function fetchNotificationDatafromDB() {
+  // $.ajax({
+  //   url: noti_url,
+  //   method: "GET",
+  //   dataType: "json",
+  //   success: function (data) {
+  //     // Update the notifications array with the fetched data
+  //     notifications = data;
+  //     console.log(notifications);
 
+  //     // Call the displayNotifications function to update the display
+  //     displayNotifications();
+  //   },
+  //   error: function (error) {
+  //     console.error("Error fetching data from Google Script:", error);
+  //   },
+  // });
+
+  fetch(noti_url)
+    .then((response) => response.json())
+    .then((data) => {
+      notifications = data;
+      console.log(notifications);
+      // data.forEach((item) => {
+      //   const notiTimestr = item.timestamp;
+      //   notiText = item.text;
+      //   notiMark = item.mark;
+      //   notiRead = item.read;
+      //   // cần thêm màu của lỗi thông báo
+
+      //   // Chỉnh thới gian của noti
+      //   const notiTime = ConvertTimefromDB(notiTimestr);
+      // });
+      displayNotifications();
+    })
+    .catch((error) => console.error("Error fetching data:", error));
+}
+
+// Code jquerry cho phần thông báo slideup
 $(document).ready(function () {
-  let notifications = [
-    { text: "New message received", mark: false, read: false },
-    { text: "You have a meeting at 3:00 PM", mark: false, read: false },
-    { text: "Task deadline approaching", mark: false, read: false },
-  ];
+  // let notifications = [
+  //   { text: "New message received", mark: false, read: false },
+  //   { text: "You have a meeting at 3:00 PM", mark: false, read: false },
+  //   { text: "Task deadline approaching", mark: false, read: false },
+  // ];
+  let notifications = [];
+
   const notificationList = $("#notificationList");
   const notificationCount = $(".notification-count"); // Reference to the count element
   const newNotificationInput = $("#newNotification");
