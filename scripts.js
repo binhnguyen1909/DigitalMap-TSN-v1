@@ -139,7 +139,7 @@ function getLayerBounds(layerName) {
 let main_url =
   "https://script.google.com/macros/s/AKfycbxrLxLhelOHd8Row0SzjZnm0sI-dh4dSEHKrQOr02fu3hX1b2052wxxtz4v7S05DI8wcg/exec";
 let noti_url =
-  "https://script.google.com/macros/s/AKfycby3IO_GZuHg_GnZ8T3E4N56woN-XAu5xZR2rxrJvsW2g--qX4Wh5o8UhltBPUX_LBPkSw/exec";
+  "https://script.google.com/macros/s/AKfycbyf3gwfIQAGT1ZxBbQnV0jTqaKPiJMK09ZWnaWcPvdHVQ9yc8dbe6yR_8J2XyAwUZgp/exec";
 // Hàm fetch dữ liệu tới Database
 function fetchDatatoDB(Data) {
   fetch(main_url, {
@@ -239,8 +239,8 @@ function fetchDatafromDB() {
   return markerId;
 }
 // Update từ Database về mỗi 5 giây
-setInterval(fetchDatafromDB, 15000);
-setInterval(fetchNotificationDatafromDB, 15000);
+setInterval(fetchDatafromDB, 5000);
+// setInterval(fetchNotificationDatafromDB, 5000);
 // Hàm xử lý màu của các Marker
 function getMarkerColor(level) {
   switch (level) {
@@ -436,8 +436,20 @@ confirmButton.addEventListener("click", () => {
             image: obj,
             imageType: objType,
           };
+          const markerNoti = {
+            text:
+              "Vị trí: " +
+              lightPosition -
+              "Tình trạng: " +
+              lightStatus +
+              "Mô tả: " +
+              lightDesc,
+            mark: false,
+            read: false,
+          };
           fetchDatatoDB(markerData);
-          console.log(markerData);
+          fetchNotificationDatatoDB(markerNoti);
+          // console.log(markerData);
         },
         function (error) {
           console.error("Error getting GPS location:", error);
@@ -500,41 +512,37 @@ function Description() {
 }
 
 // ************************************** MODULE CODE JQUERRY CỦA NOTIFICATION SLIDEUP ************************************************** //
+// Hàm fetch truyền dữ liệu thông báo đến Database
+function fetchNotificationDatatoDB(Data) {
+  fetch(noti_url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(Data),
+    mode: "no-cors",
+  })
+    .then((response) => response.text())
+    .then((responseText) => {
+      console.log("Backend Response:", responseText);
+    })
+    .catch((error) => {
+      console.error("Fetch error:", error);
+    });
+}
+
 // Hàm fetch lấy dữ liệu thông báo từ Database về
-function fetchNotificationDatafromDB() {
-  // $.ajax({
-  //   url: noti_url,
-  //   method: "GET",
-  //   dataType: "json",
-  //   success: function (data) {
-  //     // Update the notifications array with the fetched data
-  //     notifications = data;
-  //     console.log(notifications);
-
-  //     // Call the displayNotifications function to update the display
-  //     displayNotifications();
-  //   },
-  //   error: function (error) {
-  //     console.error("Error fetching data from Google Script:", error);
-  //   },
-  // });
-
-  fetch(noti_url)
+function fetchNotificationDatafromDB(callback) {
+  fetch(noti_url, {
+    mode: "no-cors",
+  })
     .then((response) => response.json())
     .then((data) => {
       notifications = data;
       console.log(notifications);
-      // data.forEach((item) => {
-      //   const notiTimestr = item.timestamp;
-      //   notiText = item.text;
-      //   notiMark = item.mark;
-      //   notiRead = item.read;
-      //   // cần thêm màu của lỗi thông báo
-
-      //   // Chỉnh thới gian của noti
-      //   const notiTime = ConvertTimefromDB(notiTimestr);
-      // });
-      displayNotifications();
+      if (typeof callback === "function") {
+        callback(); // Call the callback function after data is fetched
+      }
     })
     .catch((error) => console.error("Error fetching data:", error));
 }
