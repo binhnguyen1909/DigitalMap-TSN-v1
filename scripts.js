@@ -90,8 +90,10 @@ map.on("load", function () {
       "fill-color": "blue", // Replace with the desired color for the new layer
     },
   });
+
   // FETCH dữ liệu từ database lần đầu khi load map
   fetchDatafromDB();
+  fetchNotificationDatafromDB();
 });
 
 /**======================================================================================== */
@@ -139,7 +141,7 @@ function getLayerBounds(layerName) {
 let main_url =
   "https://script.google.com/macros/s/AKfycbxrLxLhelOHd8Row0SzjZnm0sI-dh4dSEHKrQOr02fu3hX1b2052wxxtz4v7S05DI8wcg/exec";
 let noti_url =
-  "https://script.google.com/macros/s/AKfycbyf3gwfIQAGT1ZxBbQnV0jTqaKPiJMK09ZWnaWcPvdHVQ9yc8dbe6yR_8J2XyAwUZgp/exec";
+  "https://script.google.com/macros/s/AKfycbwJr3kKHqBuFND9LMtqPrQequQHYpy5gE5dGiNhlLbinbLF1ztAQ9Z_k4P83OggMCriPA/exec";
 // Hàm fetch dữ liệu tới Database
 function fetchDatatoDB(Data) {
   fetch(main_url, {
@@ -240,7 +242,7 @@ function fetchDatafromDB() {
 }
 // Update từ Database về mỗi 5 giây
 setInterval(fetchDatafromDB, 5000);
-// setInterval(fetchNotificationDatafromDB, 5000);
+setInterval(fetchNotificationDatafromDB, 5000);
 // Hàm xử lý màu của các Marker
 function getMarkerColor(level) {
   switch (level) {
@@ -469,7 +471,21 @@ confirmButton.addEventListener("click", () => {
         image: obj,
         imageType: objType,
       };
+      const markerNoti = {
+        text:
+          "Vị trí: " +
+          lightPosition +
+          "-" +
+          "Tình trạng: " +
+          lightStatus +
+          "-" +
+          "Mô tả: " +
+          lightDesc,
+        mark: false,
+        read: false,
+      };
       fetchDatatoDB(markerData);
+      fetchNotificationDatatoDB(markerNoti);
     }
     popup.classList.remove("active");
   }
@@ -531,146 +547,166 @@ function fetchNotificationDatatoDB(Data) {
     });
 }
 
+var notiText = null;
+var notiMark = null;
+var notiRead = null;
+let notifications = [];
 // Hàm fetch lấy dữ liệu thông báo từ Database về
-function fetchNotificationDatafromDB(callback) {
-  fetch(noti_url, {
-    mode: "no-cors",
-  })
+function fetchNotificationDatafromDB() {
+  fetch(noti_url)
     .then((response) => response.json())
     .then((data) => {
-      notifications = data;
-      console.log(notifications);
-      if (typeof callback === "function") {
-        callback(); // Call the callback function after data is fetched
-      }
+      notifications = data.map((item) => {
+        const databaseTimestr = item.timestamp;
+        notiText = item.text;
+        notiMark = item.mark;
+        notiRead = item.read;
+
+        // const markerColor = getMarkerColor(markerlevel);
+
+        // Chỉnh thới gian của marker
+        const notiTime = ConvertTimefromDB(databaseTimestr);
+
+        return {
+          text: notiText,
+          mark: notiMark,
+          read: notiRead,
+          notiTime: notiTime, // Add notiTime property
+        };
+      });
+      notification_slideup();
     })
     .catch((error) => console.error("Error fetching data:", error));
 }
 
 // Code jquerry cho phần thông báo slideup
-$(document).ready(function () {
-  // let notifications = [
-  //   { text: "New message received", mark: false, read: false },
-  //   { text: "You have a meeting at 3:00 PM", mark: false, read: false },
-  //   { text: "Task deadline approaching", mark: false, read: false },
-  // ];
-  let notifications = [];
+function notification_slideup() {
+  $(document).ready(function () {
+    // let notifications = [
+    //   { text: "New message received", mark: false, read: false },
+    //   { text: "You have a meeting at 3:00 PM", mark: false, read: false },
+    //   { text: "Task deadline approaching", mark: false, read: false },
+    // ];
 
-  const notificationList = $("#notificationList");
-  const notificationCount = $(".notification-count"); // Reference to the count element
-  const newNotificationInput = $("#newNotification");
-  const addNotificationButton = $("#addNotification");
+    const notificationList = $("#notificationList");
+    const notificationCount = $(".notification-count"); // Reference to the count element
+    const newNotificationInput = $("#newNotification");
+    const addNotificationButton = $("#addNotification");
 
-  function displayNotifications() {
-    notificationList.empty();
-    let unmarkCount = 0;
+    function displayNotifications() {
+      notificationList.empty();
+      let unmarkCount = 0;
 
-    notifications.forEach((notification, index) => {
-      if (!notification.mark) {
-        unmarkCount++;
-      }
-
-      const notifyItem = $("<li>").addClass("notify-item");
-      if (!notification.read) {
-        notifyItem.addClass("read"); // Apply "read" class for read notifications
-      }
-
-      const statusCircle = $("<div>").addClass("status-circle");
-      if (notification.read) {
-        statusCircle.addClass("read"); // Apply "read" class for read notifications
-      }
-
-      const itemContent = $("<div>").addClass("item-content"); // Container for both notify-info and status-circle
-
-      const notifyInfo = $("<div>").addClass("notify-info");
-      const notifyText = $("<p>").text(notification.text);
-      const notifyTime = $("<span>")
-        .addClass("notify-time")
-        .text("10 minutes ago");
-      notifyInfo.append(notifyText);
-      notifyInfo.append(statusCircle); // Append status-circle to the container
-      notifyInfo.append(notifyTime);
-
-      itemContent.append(notifyInfo); // Append notify-info to the container
-
-      notifyItem.append(itemContent); // Append the container to the notify-item
-
-      // Add a click event handler to toggle the read status
-      notifyItem.on("click", function () {
-        if (notification.read == false) {
-          notification.read = true; // Mark as read on the first click
-          notifyItem.removeClass("read");
-          statusCircle.addClass("read");
-          console.log("clicked");
+      notifications.forEach((notification, index) => {
+        if (!notification.mark) {
+          unmarkCount++;
         }
-        // notification.read = !notification.read; // Toggle read status
-        // displayNotifications(); // Update the display
+
+        const notifyItem = $("<li>").addClass("notify-item");
+        if (!notification.read) {
+          notifyItem.addClass("read"); // Apply "read" class for read notifications
+        }
+
+        const statusCircle = $("<div>").addClass("status-circle");
+        if (notification.read) {
+          statusCircle.addClass("read"); // Apply "read" class for read notifications
+        }
+
+        const itemContent = $("<div>").addClass("item-content"); // Container for both notify-info and status-circle
+
+        const notifyInfo = $("<div>").addClass("notify-info");
+        const notifyText = $("<p>").text(notification.text);
+        const notifyTime = $("<span>")
+          .addClass("notify-time")
+          .text(notification.notiTime);
+        notifyInfo.append(notifyText);
+        notifyInfo.append(statusCircle); // Append status-circle to the container
+        notifyInfo.append(notifyTime);
+
+        itemContent.append(notifyInfo); // Append notify-info to the container
+
+        notifyItem.append(itemContent); // Append the container to the notify-item
+
+        // Add a click event handler to toggle the read status
+        notifyItem.on("click", function () {
+          if (notification.read == false) {
+            notification.read = true; // Mark as read on the first click
+            notifyItem.removeClass("read");
+            statusCircle.addClass("read");
+            console.log("clicked");
+          }
+          // notification.read = !notification.read; // Toggle read status
+          // displayNotifications(); // Update the display
+        });
+
+        notificationList.append(notifyItem);
       });
 
-      notificationList.append(notifyItem);
+      // Update the notification count
+      notificationCount.text(unmarkCount);
+    }
+
+    // Nút thêm thông báo mới (Chưa cần thiết)
+    addNotificationButton.on("click", function () {
+      const newNotificationText = newNotificationInput.val().trim();
+      if (newNotificationText !== "") {
+        const newNotification = { text: newNotificationText, mark: false };
+        notifications.push(newNotification);
+        displayNotifications();
+        newNotificationInput.val(""); // Clear the input field
+      }
     });
 
-    // Update the notification count
-    notificationCount.text(unmarkCount);
-  }
+    // Nhấn vào chuông Thông báo
+    $(".notification-button").click(function () {
+      if (
+        $("#popup-noti-Overlay").css("transform") === "matrix(1, 0, 0, 1, 0, 0)"
+      ) {
+        // If the popup is open, close it
+        $("#popup-noti, #popup-noti-Overlay").css(
+          "transform",
+          "translateY(100%)"
+        );
+        setTimeout(function () {
+          $("#popup-noti-Overlay").css("display", "none");
+        }, 300);
+      } else {
+        // If the popup is closed, open it
+        $("#popup-noti-Overlay")
+          .css("display", "flex")
+          .delay(10)
+          .queue(function (next) {
+            $("#popup-noti, #popup-noti-Overlay").css(
+              "transform",
+              "translateY(0)"
+            );
+            next();
+          });
+        notificationCount.text("0");
+      }
 
-  addNotificationButton.on("click", function () {
-    const newNotificationText = newNotificationInput.val().trim();
-    if (newNotificationText !== "") {
-      const newNotification = { text: newNotificationText, mark: false };
-      notifications.push(newNotification);
+      // Close the popup when the close button is clicked
+      $("#closePopup").click(function () {
+        $("#popup-noti, #popup-noti-Overlay").css(
+          "transform",
+          "translateY(100%)"
+        );
+        setTimeout(function () {
+          $("#popup-noti-Overlay").css("display", "none");
+        }, 300);
+      });
+
+      notifications.forEach((notification) => {
+        notification.mark = true; // Mark all notifications as mark when the button is clicked
+      });
+      // if (dropdown.hasClass("active")) {
+      //   displayNotifications(); // Display notifications when opening the dropdown
+      //   notificationCount.text("0"); // Clear the count when opening
+      // }
       displayNotifications();
-      newNotificationInput.val(""); // Clear the input field
-    }
-  });
-
-  $(".notification-button").click(function () {
-    if (
-      $("#popup-noti-Overlay").css("transform") === "matrix(1, 0, 0, 1, 0, 0)"
-    ) {
-      // If the popup is open, close it
-      $("#popup-noti, #popup-noti-Overlay").css(
-        "transform",
-        "translateY(100%)"
-      );
-      setTimeout(function () {
-        $("#popup-noti-Overlay").css("display", "none");
-      }, 300);
-    } else {
-      // If the popup is closed, open it
-      $("#popup-noti-Overlay")
-        .css("display", "flex")
-        .delay(10)
-        .queue(function (next) {
-          $("#popup-noti, #popup-noti-Overlay").css(
-            "transform",
-            "translateY(0)"
-          );
-          next();
-        });
-      notificationCount.text("0");
-    }
-
-    // Close the popup when the close button is clicked
-    $("#closePopup").click(function () {
-      $("#popup-noti, #popup-noti-Overlay").css(
-        "transform",
-        "translateY(100%)"
-      );
-      setTimeout(function () {
-        $("#popup-noti-Overlay").css("display", "none");
-      }, 300);
     });
 
-    notifications.forEach((notification) => {
-      notification.mark = true; // Mark all notifications as mark when the button is clicked
-    });
-    // if (dropdown.hasClass("active")) {
-    //   displayNotifications(); // Display notifications when opening the dropdown
-    //   notificationCount.text("0"); // Clear the count when opening
-    // }
+    // Initial display of notifications
+    displayNotifications();
   });
-
-  // Initial display of notifications
-  displayNotifications();
-});
+}
