@@ -441,9 +441,11 @@ confirmButton.addEventListener("click", () => {
           const markerNoti = {
             text:
               "Vị trí: " +
-              lightPosition -
-              "Tình trạng: " +
+              lightPosition +
+              " - " +
+              " Tình trạng: " +
               lightStatus +
+              " - " +
               "Mô tả: " +
               lightDesc,
             mark: false,
@@ -475,10 +477,10 @@ confirmButton.addEventListener("click", () => {
         text:
           "Vị trí: " +
           lightPosition +
-          "-" +
-          "Tình trạng: " +
+          " - " +
+          " Tình trạng: " +
           lightStatus +
-          "-" +
+          " - " +
           "Mô tả: " +
           lightDesc,
         mark: false,
