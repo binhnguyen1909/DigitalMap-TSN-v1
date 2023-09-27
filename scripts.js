@@ -234,6 +234,12 @@ function fetchDatafromDB() {
             popup.addTo(map);
             currentPopup = popup;
           });
+        } else {
+          const marker = new mapboxgl.Marker({ color: markerColor }).setLngLat([
+            markerlongitude,
+            markerlatitude,
+          ]);
+          marker.remove;
         }
       });
     })

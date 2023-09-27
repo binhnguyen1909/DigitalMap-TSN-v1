@@ -33,7 +33,7 @@
     position: relative;
     padding: 10px 20px;
     top: 1%;
-    left: 8%;
+    left: 1%;
     font-size: 15px;
     font-weight: 600;
     color: #222;
@@ -48,7 +48,7 @@
     position: relative;
     padding: 10px 20px;
     top: 1%;
-    left: 8%;
+    left: 2%;
     font-size: 15px;
     font-weight: 600;
     color: #222;
@@ -63,7 +63,7 @@
   
 .notification-wrap {
     position: absolute;
-    left: 96%;
+    right: 1%;
     top: 10%;
     width: 45px;
     /* background: red; */
@@ -74,6 +74,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    right: 2%;
     width: 40px;
     height: 40px;
     color: #333333;
