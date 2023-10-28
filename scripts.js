@@ -445,6 +445,12 @@ confirmButton.addEventListener("click", () => {
             imageType: objType,
           };
           const markerNoti = {
+            uniqueId:
+              new Date().getTime() +
+              "_" +
+              position.coords.latitude +
+              "_" +
+              position.coords.longitude,
             text:
               "Vị trí: " +
               lightPosition +
@@ -456,6 +462,7 @@ confirmButton.addEventListener("click", () => {
               lightDesc,
             mark: false,
             read: false,
+            level: lightLevel,
           };
           fetchDatatoDB(markerData);
           fetchNotificationDatatoDB(markerNoti);
@@ -480,6 +487,8 @@ confirmButton.addEventListener("click", () => {
         imageType: objType,
       };
       const markerNoti = {
+        uniqueId:
+          new Date().getTime() + "_" + newMarkerLat + "_" + newMarkerLng,
         text:
           "Vị trí: " +
           lightPosition +
@@ -491,6 +500,7 @@ confirmButton.addEventListener("click", () => {
           lightDesc,
         mark: false,
         read: false,
+        level: lightLevel,
       };
       fetchDatatoDB(markerData);
       fetchNotificationDatatoDB(markerNoti);
@@ -555,9 +565,11 @@ function fetchNotificationDatatoDB(Data) {
     });
 }
 
+var notiId = null;
 var notiText = null;
 var notiMark = null;
 var notiRead = null;
+var notiLevel = null;
 let notifications = [];
 // Hàm fetch lấy dữ liệu thông báo từ Database về
 function fetchNotificationDatafromDB() {
@@ -566,9 +578,11 @@ function fetchNotificationDatafromDB() {
     .then((data) => {
       notifications = data.map((item) => {
         const databaseTimestr = item.timestamp;
+        notiId = item.id;
         notiText = item.text;
         notiMark = item.mark;
         notiRead = item.read;
+        notiLevel = item.level;
 
         // const markerColor = getMarkerColor(markerlevel);
 
@@ -576,9 +590,11 @@ function fetchNotificationDatafromDB() {
         const notiTime = ConvertTimefromDB(databaseTimestr);
 
         return {
+          id: notiId,
           text: notiText,
           mark: notiMark,
           read: notiRead,
+          level: notiLevel,
           notiTime: notiTime, // Add notiTime property
         };
       });
