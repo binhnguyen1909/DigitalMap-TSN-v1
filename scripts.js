@@ -734,3 +734,13 @@ function notification_slideup() {
     displayNotifications();
   });
 }
+
+// Đăng xuất
+document.addEventListener("DOMContentLoaded", function () {
+  const logoutButton = document.getElementById("logout-button");
+
+  logoutButton.addEventListener("click", function () {
+    // Make an AJAX request to Google Apps Script for logging out
+    window.location.href = "login.html";
+  });
+});
